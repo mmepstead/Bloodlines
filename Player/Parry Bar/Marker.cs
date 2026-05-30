@@ -21,19 +21,16 @@ public class Marker : MonoBehaviour
     GameObject goal;
 
     [Header("Warning Indicators")]
-    [Tooltip("Prefab for the warning line sprite placed at each edge of where the goal will land.")]
+    [Tooltip("Prefab for the warning line sprite shown before the goal moves.")]
     public GameObject warningLinePrefab;
 
-    [Tooltip("How far each warning line is offset from the exact next goal position. " +
-             "0 = perfectly accurate, larger = wider bracket.")]
+    [Tooltip("How far off the predicted center each warning line is placed. " +
+             "Larger values = wider/rougher estimate shown to the player.")]
     public float warningRoughness = 0.1f;
 
     // The two live warning indicator instances
     GameObject warningLeft;
     GameObject warningRight;
-
-    // Pre-rolled destination for the next goal move
-    float nextGoalX;
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -52,8 +49,7 @@ public class Marker : MonoBehaviour
         startX = transform.position.x + 0.65f;
         goal = GameObject.FindGameObjectWithTag("Goal");
 
-        // Pre-roll and show warnings for the first round
-        nextGoalX = RollNextGoalX();
+        // Spawn initial warnings for the very first incoming position
         SpawnWarnings();
     }
 
@@ -61,11 +57,13 @@ public class Marker : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.W))
         {
+            // Always destroy warnings on button press (hit or miss)
             DestroyWarnings();
 
             if (inGoal)
             {
                 movingRight = !movingRight;
+                float newX;
                 currentRound += 1;
 
                 if (currentRound >= roundsToWin)
@@ -74,17 +72,28 @@ public class Marker : MonoBehaviour
                     return;
                 }
 
-                // Move the goal to the already-decided position
+                if (movingRight)
+                {
+                    newX = UnityEngine.Random.Range(
+                        Math.Min(transform.position.x + baseDistance, startX + goalRange),
+                        Math.Max(transform.position.x + baseDistance, startX + goalRange));
+                }
+                else
+                {
+                    newX = UnityEngine.Random.Range(
+                        Math.Min(startX - goalRange, transform.position.x - baseDistance),
+                        Math.Max(startX - goalRange, transform.position.x - baseDistance));
+                }
+
                 goal.transform.localScale = new Vector3(
                     goal.transform.localScale.x - goal.transform.localScale.x * sizeDecrease,
                     goal.transform.localScale.y,
                     goal.transform.localScale.z);
 
                 Instantiate(goalHitSparksPrefab, goal.transform.position, Quaternion.identity);
-                goal.transform.position = new Vector2(nextGoalX, goal.transform.position.y);
+                goal.transform.position = new Vector2(newX, goal.transform.position.y);
 
-                // Pre-roll the NEXT destination and show its warnings
-                nextGoalX = RollNextGoalX();
+                // Spawn fresh warnings for the next incoming position
                 SpawnWarnings();
             }
         }
@@ -97,6 +106,7 @@ public class Marker : MonoBehaviour
             {
                 transform.position = new Vector2(startX + rightLimit, transform.position.y);
                 GameObject.Find("Player").GetComponent<Movement>().endHardParry(false);
+                DestroyWarnings();
             }
             else
             {
@@ -110,6 +120,7 @@ public class Marker : MonoBehaviour
             {
                 transform.position = new Vector2(startX + leftLimit, transform.position.y);
                 GameObject.Find("Player").GetComponent<Movement>().endHardParry(false);
+                DestroyWarnings();
             }
             else
             {
@@ -119,42 +130,46 @@ public class Marker : MonoBehaviour
     }
 
     /// <summary>
-    /// Rolls the random X position the goal will move to on the NEXT successful press,
-    /// mirroring the original range logic but for the direction after the next flip.
-    /// </summary>
-    float RollNextGoalX()
-    {
-        // After the next successful press, movingRight will flip to !movingRight
-        bool nextMovingRight = !movingRight;
-
-        if (nextMovingRight)
-        {
-            return UnityEngine.Random.Range(
-                Math.Min(transform.position.x + baseDistance, startX + goalRange),
-                Math.Max(transform.position.x + baseDistance, startX + goalRange));
-        }
-        else
-        {
-            return UnityEngine.Random.Range(
-                Math.Min(startX - goalRange, transform.position.x - baseDistance),
-                Math.Max(startX - goalRange, transform.position.x - baseDistance));
-        }
-    }
-
-    /// <summary>
-    /// Spawns two warning lines offset by warningRoughness around the exact pre-rolled goal position.
+    /// Calculates the midpoint of the range where the goal will land on the NEXT
+    /// press (based on the current marker position and movement direction), then
+    /// spawns two warning lines offset by warningRoughness on either side of it.
     /// </summary>
     void SpawnWarnings()
     {
         if (warningLinePrefab == null || goal == null) return;
 
+        // Predict where the goal's center will be on the next successful press.
+        // We mirror the current move logic: next press flips direction, so the
+        // next goal side is the OPPOSITE of movingRight.
+        bool nextMovingRight = !movingRight;
+        float predictedMin, predictedMax;
+
+        // Use the current marker position as an approximation of where it will be
+        // when W is pressed. This is intentionally imprecise — warningRoughness
+        // adds further visual fuzziness on top.
+        float approxMarkerX = transform.position.x;
+
+        if (nextMovingRight)
+        {
+            predictedMin = Math.Min(approxMarkerX + baseDistance, startX + goalRange);
+            predictedMax = Math.Max(approxMarkerX + baseDistance, startX + goalRange);
+        }
+        else
+        {
+            predictedMin = Math.Min(startX - goalRange, approxMarkerX - baseDistance);
+            predictedMax = Math.Max(startX - goalRange, approxMarkerX - baseDistance);
+        }
+
+        float predictedCenter = (predictedMin + predictedMax) * 0.5f;
         float warningY = goal.transform.position.y;
-        Vector3 posLeft  = new Vector3(nextGoalX - warningRoughness, warningY, 0f);
-        Vector3 posRight = new Vector3(nextGoalX + warningRoughness, warningY, 0f);
+
+        Vector3 posLeft  = new Vector3(predictedCenter - warningRoughness, warningY, 0f);
+        Vector3 posRight = new Vector3(predictedCenter + warningRoughness, warningY, 0f);
 
         warningLeft  = Instantiate(warningLinePrefab, posLeft,  Quaternion.identity);
         warningRight = Instantiate(warningLinePrefab, posRight, Quaternion.identity);
 
+        // Wire up the shake scripts
         SetupShake(warningLeft,  posLeft);
         SetupShake(warningRight, posRight);
     }
