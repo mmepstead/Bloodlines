@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb6c1cb6d4078e84294297ffb0def01f, type: 3}
+  m_Name: Slash
+  m_EditorClassIdentifier: Assembly-CSharp::Combination
+  attacks:
+  - name: Slash
+    animationTrigger: Slash
+    hardParry: 1
+    hitboxPrefab: {fileID: 7452131099376547037, guid: 7c4c22234d92a5047b59e7d916b4fa9f, type: 3}
+    hitboxDuration: 0.2
+    delayAfter: 0
+    hitboxDelay: 0.8
+  cooldown: 1
