@@ -359,8 +359,8 @@ public class Movement : MonoBehaviour {
         healthMeter.SetActive(false);
         subWeaponDisplay = GameObject.Find("Sub Weapon Display");
         subWeaponDisplay.SetActive(false);
-        comboDisplay = GameObject.Find("Combo");
-        comboDisplay.SetActive(false);
+        // comboDisplay = GameObject.Find("Combo");
+        // comboDisplay.SetActive(false);
         animator.SetBool(IsHardParrying, true);
     }
 
@@ -372,12 +372,12 @@ public class Movement : MonoBehaviour {
         subWeaponDisplay.SetActive(true);
         healthBar.SetActive(true);
         healthMeter.SetActive(true);
-        comboDisplay.SetActive(true);
+        // comboDisplay.SetActive(true);
         animator.SetBool(IsHardParrying, false);
         hardParryEnemy.GetComponent<EnemyAI>().endHardParry();
         if(win) 
         {
-            hardParryEnemy.GetComponent<Enemy>().impact(5, hardParryEnemy.transform.position);
+            hardParryEnemy.GetComponent<Enemy>().impact(100, hardParryEnemy.transform.position);
         }
         else 
         {
@@ -524,7 +524,7 @@ public class Movement : MonoBehaviour {
         {
             destroyChargeFlames();
             _rigidbody.linearVelocity = new Vector2(0,0);
-            transform.position = hangingOn ? hangingOn.transform.position + new Vector3((transform.localScale.x > 0 ? -0.7f : 0.7f), hangingPoint.y, transform.position.z) : hangingPoint;
+            transform.position = hangingOn ? hangingOn.transform.position + new Vector3((transform.localScale.x > 0 ? -1f : 1f), hangingPoint.y, transform.position.z) : hangingPoint;
         }
     }
 
@@ -651,5 +651,55 @@ public class Movement : MonoBehaviour {
         //     Instantiate(stompPrefab, new Vector3(startingPoint.x+ (flip ? -i : i), startingPoint.y, 2), Quaternion.identity);
         //     yield return new WaitForSeconds(0.5f);
         // }
+    }
+
+
+    /// <summary>
+    /// Walks the player `units` along the X axis (negative = left) at the normal
+    /// move speed, stopping exactly on the target. Intended for cutscenes.
+    /// </summary>
+    public IEnumerator MoveDistance(float units)
+    {
+        GameObject.Find("Main Camera").GetComponent<FollowPlayer>().enabled = true;
+        float targetX   = _rigidbody.position.x + units;
+        float stuckTime = 0f;
+        float lastX     = _rigidbody.position.x;
+
+        try
+        {
+            while (true)
+            {
+                float remaining = targetX - _rigidbody.position.x;
+                if (Mathf.Abs(remaining) <= 0.02f) break;
+
+                // Move at full speed, but slow on the final step so we land on the
+                // target instead of overshooting it.
+                float vx = Mathf.Clamp(remaining / Time.fixedDeltaTime, -speed, speed);
+
+                _rigidbody.linearVelocity = new Vector2(
+                    vx,
+                    clampVelocity(_rigidbody.linearVelocity.y, 12));
+
+                // Bail out if the player is blocked (wall, gate, etc.) for half a second.
+                if (Mathf.Abs(_rigidbody.position.x - lastX) < 0.001f)
+                {
+                    stuckTime += Time.fixedDeltaTime;
+                    if (stuckTime > 0.5f) break;
+                }
+                else stuckTime = 0f;
+                lastX = _rigidbody.position.x;
+
+                yield return new WaitForFixedUpdate();
+            }
+            GameObject.Find("Main Camera").GetComponent<FollowPlayer>().enabled = false;
+            animator.SetBool(IsRunning, false);
+        }
+        finally
+        {
+            // Runs on normal completion, being blocked, or the cutscene being skipped.
+            _rigidbody.linearVelocity = new Vector2(0f, _rigidbody.linearVelocity.y);
+            animator.SetBool(IsRunning, false);
+            GameObject.Find("Main Camera").GetComponent<FollowPlayer>().enabled = false;
+        }
     }
 }

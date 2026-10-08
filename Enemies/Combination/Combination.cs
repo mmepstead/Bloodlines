@@ -7,6 +7,7 @@ public class Combination : ScriptableObject
 {
     public List<EnemyAttack> attacks;
     public float cooldown = 2f;
+    public bool quickStepFirst = false; // Whether this combo benefits from a quick step approach
     [System.NonSerialized]
     public bool onCooldown = false;
 

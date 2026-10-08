@@ -18,7 +18,7 @@ public class Fade : MonoBehaviour {
         {
             if(opacity < 1)
             {
-                opacity += 0.025f;
+                opacity += 0.004f;
             }
             else
             {
@@ -31,7 +31,7 @@ public class Fade : MonoBehaviour {
         {
             if(opacity > 0)
             {
-                opacity -= 0.025f;
+                opacity -= 0.003f;
             }
             else
             {

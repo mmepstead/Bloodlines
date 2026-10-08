@@ -15,14 +15,187 @@ MonoBehaviour:
   cutsceneName: Test Cutscene
   steps:
   - stepType: 0
-    speakerName: Victoria
-    dialogueText: I'm going to destroy you and everyone you love. I hope you suffer
-      immensely for everything you've done. Shit yourself and die! This is just to
-      fill space so I can see exactly how many characters I can fit into the box
-      without it fucking up. I could probably do even more than this it just barely
-      will fit an extra line but probably not two.
+    speakerName: Old man
+    dialogueText: Who goes there? I might be old but I still know how to handle myself!
+    actionType: 0
     actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
   - stepType: 0
     speakerName: Old man
-    dialogueText: Die
+    dialogueText: 'Oh! My gods, Victoria is that you? I''m glad to know you''re alive
+      but you truly shouldn''t be here. This city is still dangerous for you. The
+      Sangrespina''s have memories as long as their lives.  '
+    actionType: 0
     actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: I'm not the helpless woman I was when you cast me from Segovia,
+      Juan. There is no danger here for me. I am the danger.
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Juan
+    dialogueText: 'I can see that you joined up with the Espadas Del Sol from the
+      looks of it. Have you lost your sense!? If the rumours are true they are almost
+      as bad as the Sangrespinas! '
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: 'They taught me what I needed to know. I could care less what else
+      they do. '
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Juan
+    dialogueText: Clearly they did not teach you enough to know that this is suicide.
+      How many Espadas have attempted this? Dozens? Hundreds? Yet still the Sangrespinas
+      stand untouched. Their estate is crawling with beasts and loyal soldiers alike.
+      You'll never even make it past the gate.
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Juan
+    dialogueText: Is this really what he would have wanted? For you to throw your
+      life away after he saved it? You don't even know if your son's still...
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: 'Don''t you dare talk of my son! I know you and my husband did
+      what you thought was right, sending me away before they came. But this is what
+      you wrought. You won''t deter me in this, Elias will be mine again. No matter
+      what he is. '
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Juan
+    dialogueText: '*sighs* I can see you believe as much. Your eyes are as solid
+      as the steel you wield. Fine, I''ll bring you to Bastion, the Espada Shopkeep
+      in town. He''s not well liked but if anybody can get you into that estate it
+      is him. '
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Juan
+    dialogueText: Bastion! I've... I've brought somebody who's looking to get into
+      the Sangrespina estate.
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Bastion
+    dialogueText: 'Heh, heh, heh... a fellow Espada eh? You are the first customer
+      I''ve had in a very VERY long time. Not many in the market for a slow painful
+      death heh heh. '
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: 'I''m not looking for death, I''m bringing it with me.  '
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Bastion
+    dialogueText: Ho ho! You've brought me a lively one Juan! Let me be very clear
+      with you missy, it doesn't matter what you intend, how angry you are or how
+      good you are with that blade. Only one thing matters around these parts, what
+      that family wants. They are an absolute. And if you go knocking on their door
+      thinking otherwise you're in for a world of hurt.
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: I mean for God's sake you're only a Four Teether! You're telling
+      me you, of all people, basically a babe fresh from the arms of its mother,
+      are going to kill not just the strongest Vampire in the entire known world
+      but his entire damn family!?
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: Are you done with the lecture? Just because you clearly couldn't
+      cut it against them doesn't mean the rest of us are plagued by the same incompetence.
+      Show me how I can get into that Estate. After that you can wash your hands
+      of me.
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Bastion
+    dialogueText: Alright, alright. I'll show you the way in. You'll have to navigate
+      the sewers before you can get to the main estate but it is the easiest route.
+      No need to pay for the info though, I can just rifle through your corpse's
+      pockets later anyways heh heh!
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0
+  - stepType: 0
+    speakerName: Victoria
+    dialogueText: Lead the way.
+    actionType: 0
+    actionLabel: 
+    targetId: 
+    moveDistance: 1
+    cameraMoveDuration: 1.5
+    waitAfterSeconds: 0

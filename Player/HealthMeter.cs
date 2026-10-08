@@ -25,6 +25,7 @@ public class HealthMeter : MonoBehaviour {
                 GameObject newHeart = Instantiate(heartPrefab, new Vector3(camera.position.x + 0.27f*i-4f,camera.position.y+2.35f,-3), Quaternion.identity, GameObject.Find("Health Bar").transform);
                 newHeart.GetComponent<Animator>().Play(0, -1,GameObject.Find("Heart(Clone)").GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime);
                 displayedHearts.Add(newHeart);
+                newHeart.GetComponent<ComboPunchScale>().TriggerPunch();
             }
         }
         else if(hearts > PlayerData.currentHealth)

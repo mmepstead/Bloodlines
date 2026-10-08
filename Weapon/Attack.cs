@@ -12,7 +12,6 @@ public class Attack : MonoBehaviour {
     void Start()
     {
         // StartCoroutine(attackTimer());
-        Debug.Log("Attack level: " + level);
         switch(level)
         {
             case 1:
@@ -53,15 +52,15 @@ public class Attack : MonoBehaviour {
         //Check for a match with the specific tag on any GameObject that collides with your GameObject
         else if (collision.gameObject.tag == "Enemy")
         {
-            Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
-            combo.extendCombo();
+            // Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
+            // combo.extendCombo();
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             if (enemy)
             {
                 gameObject.GetComponent<BoxCollider2D>().enabled = false;
                 ImpactManager.Instance.DoImpact();
                 enemy.impact(damage, collision.ClosestPoint(transform.position));
-                if (enemy.health > 0)
+                if (enemy.health > 0 && enemy.knockbackEnabled)
                 {
                     Vector3 knockback = collision.gameObject.transform.position - GameObject.Find("Player").transform.position;
                     if (collision.gameObject.GetComponent<Rigidbody2D>() != null)

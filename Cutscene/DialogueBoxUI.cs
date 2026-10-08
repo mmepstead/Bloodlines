@@ -41,6 +41,12 @@ public class DialogueBoxUI : MonoBehaviour
     private GameObject      _canvasRoot;
     private RectTransform   _canvasRT;
 
+    // ── Continue indicator animation ──────────────────────────────────────────
+    private Image      _continueIndicatorImage; // cached Image on the indicator GO
+    private Sprite[]   _continueFrames;         // all frames from the spritesheet
+    private float      _continueFrameDelay;     // seconds per frame (1f / fps)
+    private Coroutine  _animCoroutine;
+
     // ── Typing state ──────────────────────────────────────────────────────────
     private Coroutine _typingCoroutine;
     private bool      _isTyping;
@@ -68,7 +74,21 @@ public class DialogueBoxUI : MonoBehaviour
     ///     Pass null for a transparent background.
     /// </param>
     /// <param name="continueSprite">
-    ///     Icon shown when waiting for player input. Pass null for a white square.
+    ///     The first (or only) frame of the continue indicator. Used as a static
+    ///     fallback when no animation frames are supplied.
+    /// </param>
+    /// <param name="continueAnimatorController">
+    ///     Unused — pass null. Animation is driven by continueAnimFrames instead.
+    /// </param>
+    /// <param name="continueAnimFrames">
+    ///     All frames of the continue indicator animation in playback order.
+    ///     Slice your spritesheet in the Sprite Editor, then drag every resulting
+    ///     sprite into this array. If null or empty the indicator shows as a
+    ///     static sprite (continueSprite) with no animation.
+    /// </param>
+    /// <param name="continueAnimFPS">
+    ///     Playback speed for the continue indicator animation in frames per second
+    ///     (default 8). Matches the FPS you would set in a normal Animator clip.
     /// </param>
     /// <param name="pixelsPerUnit">
     ///     Your project's PPU setting (e.g. 64). All pixel measurements are divided
@@ -89,6 +109,8 @@ public class DialogueBoxUI : MonoBehaviour
         Sprite boxSprite,
         Sprite continueSprite    = null,
         RuntimeAnimatorController continueAnimatorController = null,
+        Sprite[] continueAnimFrames = null,
+        float    continueAnimFPS    = 8f,
         float  pixelsPerUnit     = 64f,
         float  bottomPaddingPx   = 8f,
         float  charDelay         = 0.04f,
@@ -243,30 +265,39 @@ public class DialogueBoxUI : MonoBehaviour
         textLE.flexibleWidth = 1f;
 
         // ── ContinueIndicator — anchored corner, outside ContentRow ───────────
+        // Animation is driven by a coroutine on DialogueBoxUI rather than an
+        // Animator, because Animator targets SpriteRenderer and cannot set
+        // Image.sprite. The coroutine advances frames at continueAnimFPS and
+        // loops continuously while the indicator is visible.
         var indicatorGO  = new GameObject("ContinueIndicator");
         indicatorGO.transform.SetParent(boxGO.transform, false);
-        var indicatorImg         = indicatorGO.AddComponent<Image>();
-        indicatorImg.sprite      = continueSprite;
+        var indicatorImg    = indicatorGO.AddComponent<Image>();
+        // Show the first animation frame (or the static sprite) as the initial image.
+        indicatorImg.sprite = (continueAnimFrames != null && continueAnimFrames.Length > 0)
+            ? continueAnimFrames[0]
+            : continueSprite;
         indicatorImg.SetNativeSize();
-        var animator = indicatorGO.AddComponent<Animator>();
-        animator.runtimeAnimatorController = continueAnimatorController;
         indicatorGO.SetActive(false);
 
-
         var indicatorRT              = indicatorGO.GetComponent<RectTransform>();
-        indicatorRT.localScale        = new Vector3(0.2f,0.2f,1); // counteract canvas scale so sprite pixels = world units
+        indicatorRT.localScale        = new Vector3(0.2f, 0.2f, 1f); // counteract canvas scale so sprite pixels = world units
         indicatorRT.anchorMin        = new Vector2(1f, 0f);
         indicatorRT.anchorMax        = new Vector2(1f, 0f);
         indicatorRT.pivot            = new Vector2(1f, 0f);
-        indicatorRT.anchoredPosition = new Vector2(-40, 20);
+        indicatorRT.anchoredPosition = new Vector2(-40f, 20f);
 
         // ── Wire DialogueBoxUI ────────────────────────────────────────────────
         var ui                  = boxGO.AddComponent<DialogueBoxUI>();
         ui._speakerImage        = portraitImg;
         ui._speakerNameText     = nameTMP;
         ui._dialogueText        = textTMP;
-        ui._continueIndicator   = indicatorGO;
-        ui._charDelay           = charDelay;
+        ui._continueIndicator       = indicatorGO;
+        ui._continueIndicatorImage  = indicatorImg;
+        ui._continueFrames          = (continueAnimFrames != null && continueAnimFrames.Length > 0)
+            ? continueAnimFrames
+            : null; // null = static, no animation coroutine started
+        ui._continueFrameDelay      = continueAnimFPS > 0f ? 1f / continueAnimFPS : 0.125f;
+        ui._charDelay               = charDelay;
         ui._canvasRoot          = canvasGO;
         ui._canvasRT            = canvasRT;
         ui._camera              = camera;
@@ -299,6 +330,7 @@ public class DialogueBoxUI : MonoBehaviour
     {
         _canvasRoot.SetActive(true);
         SnapToCamera();
+        StopContinueAnim();
         _continueIndicator.SetActive(false);
 
         Sprite portrait = roster != null ? roster.GetPortrait(step.speakerName) : null;
@@ -327,6 +359,8 @@ public class DialogueBoxUI : MonoBehaviour
     /// <summary>Hide the canvas and abort any in-progress typing.</summary>
     public void Hide()
     {
+        StopContinueAnim();
+
         if (_canvasRoot != null)
             _canvasRoot.SetActive(false);
 
@@ -383,6 +417,50 @@ public class DialogueBoxUI : MonoBehaviour
         _isTyping      = false;
         _skipRequested = false;
         _continueIndicator.SetActive(true);
+        StartContinueAnim();
         onComplete?.Invoke();
+    }
+
+    // ── Continue indicator animation ───────────────────────────────────────
+
+    /// <summary>
+    /// Start the frame-by-frame animation loop on the continue indicator.
+    /// Does nothing if no animation frames were provided (static sprite mode).
+    /// </summary>
+    private void StartContinueAnim()
+    {
+        if (_continueFrames == null || _continueFrames.Length == 0) return;
+        StopContinueAnim(); // guard against double-start
+        _animCoroutine = StartCoroutine(AnimateContinueIndicator());
+    }
+
+    /// <summary>Stop the animation coroutine and reset to the first frame.</summary>
+    private void StopContinueAnim()
+    {
+        if (_animCoroutine != null)
+        {
+            StopCoroutine(_animCoroutine);
+            _animCoroutine = null;
+        }
+
+        // Reset to first frame so the indicator is never left mid-animation.
+        if (_continueFrames != null && _continueFrames.Length > 0 && _continueIndicatorImage != null)
+            _continueIndicatorImage.sprite = _continueFrames[0];
+    }
+
+    /// <summary>
+    /// Loops through <see cref="_continueFrames"/> at <see cref="_continueFrameDelay"/>
+    /// seconds per frame, cycling back to frame 0 after the last frame.
+    /// Identical behaviour to a looping Animator clip on a SpriteRenderer.
+    /// </summary>
+    private IEnumerator AnimateContinueIndicator()
+    {
+        int frameIndex = 0;
+        while (true)
+        {
+            _continueIndicatorImage.sprite = _continueFrames[frameIndex];
+            yield return new WaitForSeconds(_continueFrameDelay);
+            frameIndex = (frameIndex + 1) % _continueFrames.Length;
+        }
     }
 }

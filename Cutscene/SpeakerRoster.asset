@@ -15,5 +15,7 @@ MonoBehaviour:
   speakers:
   - speakerName: Victoria
     portrait: {fileID: 0}
-  - speakerName: Diego
+  - speakerName: Juan
+    portrait: {fileID: 0}
+  - speakerName: Bastion
     portrait: {fileID: 0}

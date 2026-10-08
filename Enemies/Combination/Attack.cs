@@ -11,6 +11,7 @@ public class EnemyAttack
     public float hitboxDuration = 0.2f;
     public float delayAfter = 0.5f;
     public float hitboxDelay = 0.3f;
+    float animationLength = 0f; // Cached length of the animation clip
     public IEnumerator ExecuteAttack(Animator animator, System.Func<bool> isInterrupted, EnemyCombat executor)
     {
         executor.currentAttack = this;
@@ -23,6 +24,8 @@ public class EnemyAttack
         if (!string.IsNullOrEmpty(animationTrigger))
         {
             animator.SetTrigger(animationTrigger);
+            yield return null; // Wait for the next frame to ensure the trigger is processed
+            yield return null; // Wait for the next frame to ensure the trigger is processed
         }
         EnemyAudioManager audioManager = executor.gameObject.GetComponent<EnemyAI>().audioManager;
         // Play sound
@@ -44,6 +47,8 @@ public class EnemyAttack
             }
             GameObject.Destroy(hitbox);
         }
+        animationLength = animator.GetCurrentAnimatorStateInfo(0).length;            
+        yield return new WaitForSeconds(animationLength);
 
         // Delay before next attack
         float delay = 0f;

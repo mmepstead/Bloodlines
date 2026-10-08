@@ -28,8 +28,8 @@ public class Stake : MonoBehaviour {
         //Check for a match with the specific tag on any GameObject that collides with your GameObject
         if (collision.gameObject.tag == "Enemy")
         {
-            Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
-            combo.extendCombo();
+            // Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
+            // combo.extendCombo();
             //If the GameObject has the same tag as specified, output this message in the console
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             enemy.impact(damage, collision.gameObject.transform.position);

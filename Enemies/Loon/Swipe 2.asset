@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb6c1cb6d4078e84294297ffb0def01f, type: 3}
+  m_Name: Swipe 2
+  m_EditorClassIdentifier: Assembly-CSharp::Combination
+  attacks:
+  - name: Swipe 2
+    animationTrigger: Swipe 2
+    hardParry: 0
+    hitboxPrefab: {fileID: 4806163697307998549, guid: ab99b737f9d76c2438f58fc2db05cb79, type: 3}
+    hitboxDuration: 0
+    delayAfter: 0
+    hitboxDelay: 0
+  cooldown: 2
+  quickStepFirst: 0

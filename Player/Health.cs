@@ -13,6 +13,7 @@ public class Health : MonoBehaviour {
     public GameObject bloodSplashPrefab;
     public GameObject ripplePrefab;
     public GameObject parryBarPrefab;
+    public GameObject youDiedTextPrefab;
     public float knockbackDirection = 0f;
     private bool knockedBack = false;
     public SpriteRenderer playerSprite;
@@ -21,9 +22,16 @@ public class Health : MonoBehaviour {
     static readonly int death = Animator.StringToHash("Death");
     bool inEnemyTrigger = false;
     Collider2D currentCollision;
+        int playerLayer;
+    int enemyLayer;
+    bool wasInvincible = false;
+
     void Awake()
     {
+        playerLayer = LayerMask.NameToLayer("Player");
+        enemyLayer = LayerMask.NameToLayer("Enemy");
     }
+
     void Update()
     {
         if(iFrames > 0 && PlayerData.currentHealth > 0)
@@ -37,15 +45,56 @@ public class Health : MonoBehaviour {
             invincible = false;
             iFrames = 0;
         }
+
+        // Toggle physical/trigger collision between Player and Enemy layers
+        // only on the frame invincibility actually changes state.
+        if(invincible != wasInvincible)
+        {
+            Physics2D.IgnoreLayerCollision(playerLayer, enemyLayer, invincible);
+            wasInvincible = invincible;
+        }
+
         if(inEnemyTrigger)
         {
-            //If the GameObject has the same tag as specified, output this message in the console
-            if(PlayerData.currentHealth > 0 && !invincible && (currentCollision.gameObject.tag == "Enemy" || currentCollision.gameObject.tag == "Hazard"))
+            if(PlayerData.currentHealth > 0 && !invincible && (currentCollision.gameObject.tag == "Enemy" || currentCollision.gameObject.tag == "Hazard" || currentCollision.gameObject.tag == "Projectile"))
             {
                 enemyHit(currentCollision);
             }
+            else if(invincible && currentCollision.gameObject.tag == "Projectile")
+            {
+                Destroy(currentCollision.gameObject);
+            }
         }
     }
+    // void Awake()
+    // {
+    // }
+    // void Update()
+    // {
+    //     if(iFrames > 0 && PlayerData.currentHealth > 0)
+    //     {
+    //         invincible = true;
+    //         iFrames -= Time.deltaTime;
+    //         flicker();
+    //     }
+    //     else
+    //     {
+    //         invincible = false;
+    //         iFrames = 0;
+    //     }
+    //     if(inEnemyTrigger)
+    //     {
+    //         //If the GameObject has the same tag as specified, output this message in the console
+    //         if(PlayerData.currentHealth > 0 && !invincible && (currentCollision.gameObject.tag == "Enemy" || currentCollision.gameObject.tag == "Hazard" || currentCollision.gameObject.tag == "Projectile"))
+    //         {
+    //             enemyHit(currentCollision);
+    //         }
+    //         else if(invincible && currentCollision.gameObject.tag == "Projectile")
+    //         {
+    //             Destroy(currentCollision.gameObject);
+    //         }
+    //     }
+    // }
 
     void FixedUpdate()
     {
@@ -76,7 +125,7 @@ public class Health : MonoBehaviour {
     void OnTriggerEnter2D(Collider2D collision)
     {
         //Check for a match with the specific tag on any GameObject that collides with your GameObject
-        if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "Hazard")
+        if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "Hazard" || collision.gameObject.tag == "Projectile")
         {
             inEnemyTrigger = true;
             currentCollision = collision;
@@ -86,7 +135,27 @@ public class Health : MonoBehaviour {
     void OnTriggerExit2D(Collider2D collision)
     {
         //Check for a match with the specific tag on any GameObject that collides with your GameObject
-        if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "Hazard")
+        if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "Hazard" || collision.gameObject.tag == "Projectile")
+        {
+            inEnemyTrigger = false;
+            currentCollision = null;
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        //Check for a match with the specific tag on any GameObject that collides with your GameObject
+        if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "Hazard" || collision.gameObject.tag == "Projectile")
+        {
+            inEnemyTrigger = true;
+            currentCollision = collision.collider;
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        //Check for a match with the specific tag on any GameObject that collides with your GameObject
+        if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "Hazard" || collision.gameObject.tag == "Projectile")
         {
             inEnemyTrigger = false;
             currentCollision = null;
@@ -96,6 +165,7 @@ public class Health : MonoBehaviour {
     public void enemyHit(Collider2D collision)
     {
         Movement playerMovement= gameObject.GetComponent<Movement>();
+
         if (playerMovement.riposting())
         {
             riposte(collision);
@@ -103,8 +173,8 @@ public class Health : MonoBehaviour {
         else
         {
             damageTaken(collision);
-            iFrames = 1.0f;
         }
+        iFrames = 1.0f;
     }
 
     // public IEnumerator waitForRiposte(Collider2D collision)
@@ -125,11 +195,18 @@ public class Health : MonoBehaviour {
     public void riposte(Collider2D collision)
     {
         AudioManager.Instance.PlayPlayerParry();
-        collision.enabled = false;
-        Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
-        combo.extendCombo();
+        // collision.enabled = false;
+        // Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
+        // combo.extendCombo();
+        if(collision.gameObject.tag == "Projectile") {
+            Destroy(collision.gameObject);
+            animator.SetTrigger("Riposte");
+            GameObject riposteHit = Instantiate(riposteFlash, GameObject.Find("Player").transform.position, Quaternion.identity);
+            riposteHit.transform.localScale = new Vector3(GameObject.Find("Player").transform.localScale.x == -1 ? -2 : 2, 2, 1);
+            return;
+        }
         Transform enemy = collision.gameObject.transform.parent;
-        EnemyAttack attackHitBy = enemy.gameObject.GetComponent<EnemyCombat>().currentAttack;
+        EnemyAttack attackHitBy = enemy == null || enemy.gameObject.GetComponent<EnemyCombat>() == null ? null : enemy.gameObject.GetComponent<EnemyCombat>().currentAttack;
         if(attackHitBy != null && attackHitBy.hardParry)
         {
             // Spawn parry bar, quick zoom, put both player and enemy in parry stance with no hitboxes
@@ -143,12 +220,18 @@ public class Health : MonoBehaviour {
             movement.hardParryEnemy = enemy.gameObject;
             enemy.gameObject.GetComponent<EnemyAI>().startHardParry();
         }
-        else
+        else if(enemy != null && enemy.gameObject.GetComponent<Shield>() != null)
         {
             enemy.gameObject.GetComponent<Shield>().impact(5, collision.ClosestPoint(enemy.position));
             animator.SetTrigger("Riposte");
             GameObject riposteHit = Instantiate(riposteFlash, GameObject.Find("Player").transform.position, Quaternion.identity);
             riposteHit.transform.localScale = new Vector3(GameObject.Find("Player").transform.localScale.x == -1 ? -2 : 2, 2, 1);
+        }
+        else
+        {
+            animator.SetTrigger("Riposte");
+            GameObject riposteHit = Instantiate(riposteFlash, GameObject.Find("Player").transform.position, Quaternion.identity);
+            riposteHit.transform.localScale = new Vector3(GameObject.Find("Player").transform.localScale.x == -1 ? -2 : 2, 2, 1);   
         }
         // iTween.RotateBy(gameObject, new Vector3(0,0,gameObject.transform.localScale.x < 0 ? -1f : 1f), 0.5f);
     }
@@ -156,8 +239,8 @@ public class Health : MonoBehaviour {
     public void damageTaken(Collider2D collision)
     {
         AudioManager.Instance.PlayPlayerHurt();
-        Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
-        combo.breakCombo();
+        // Combo combo = GameObject.Find("Combo").GetComponent<Combo>();
+        // combo.breakCombo();
         PlayerData.currentHealth -= 1;
         if(collision != null && collision.gameObject != null)
         {
@@ -180,6 +263,10 @@ public class Health : MonoBehaviour {
             knockbackDirection = hardParryEnemy.transform.position.x > gameObject.transform.position.x ? -250f : 250f;
             knockedBack = true;
         }
+        if(collision && collision.gameObject && collision.gameObject.tag == "Projectile")
+        {
+            Destroy(collision.gameObject);
+        }
         StartCoroutine(hurtFlash());
     }
 
@@ -196,7 +283,7 @@ public class Health : MonoBehaviour {
         }
         else
         {
-            StartCoroutine(gameObject.GetComponent<Player>().respawn(3.3f, true, 20));
+            StartCoroutine(gameObject.GetComponent<Player>().respawn(5f, true, 20));
             GameObject blood = Instantiate(bloodSplashPrefab, gameObject.transform.position, Quaternion.identity);
             blood.transform.localScale = new Vector3(-1f,1f,1f);
             SpriteRenderer playerSprite = transform.Find("Sprites").GetComponent<SpriteRenderer>();
@@ -204,6 +291,8 @@ public class Health : MonoBehaviour {
             playerSprite.sortingOrder = 101;
             animator.SetTrigger(hurt);
             yield return new WaitForSeconds(0.3f);
+            // Make you died text appear above the player
+            GameObject youDiedText = Instantiate(youDiedTextPrefab, gameObject.transform.position + new Vector3(0.2f, 0.7f, 0), Quaternion.identity);
             AudioManager.Instance.PlayPlayerDeath();
             animator.SetTrigger(death);
             // Instantiate(ripplePrefab, gameObject.transform.position + new Vector3(gameObject.transform.localScale.x < 0 ? 0.2f : -0.2f, 0,0), Quaternion.identity, gameObject.transform);

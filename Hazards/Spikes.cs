@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 public class Spikes : MonoBehaviour {
     public float delay = 0.5f;
-    public BoxCollider2D damageCollider;
     bool isOut = false;
     bool playerInTrigger = false;
     int stayOut = 60;
     bool isPoppingOut = false;
+    public BoxCollider2D triggerCollider;
+    public BoxCollider2D damageCollider;
 
     void Update()
     {
@@ -18,7 +19,7 @@ public class Spikes : MonoBehaviour {
         }
         else
         {
-            tag = null;
+            tag = "Untagged";
         }
         if(playerInTrigger)
         {
@@ -39,6 +40,8 @@ public class Spikes : MonoBehaviour {
             gameObject.GetComponentInChildren<Animator>().SetTrigger("Pop In");
             isPoppingOut = false;
             isOut = false;
+            gameObject.tag = "Untagged";
+            damageCollider.enabled = false;
         }
     }
 
@@ -49,8 +52,8 @@ public class Spikes : MonoBehaviour {
         yield return new WaitForSeconds(delay);
         isOut = true;
         // Trigger animation
+        damageCollider.enabled = true;
         gameObject.GetComponentInChildren<Animator>().SetTrigger("Pop Out");
-        
     }
     void OnTriggerEnter2D(Collider2D collision)
     {

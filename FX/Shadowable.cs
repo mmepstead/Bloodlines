@@ -31,8 +31,7 @@ public class Shadowable : MonoBehaviour
         // Copy sprite renderer
         shadowRenderer = shadowObj.AddComponent<SpriteRenderer>();
         if(pulse) shadowRenderer.material = Resources.Load<Material>("Gothic/Materials/Breathing/Shadow Breathing");
-        shadowRenderer.sortingLayerID = parentRenderer.sortingLayerID;
-        shadowRenderer.sortingOrder = parentRenderer.sortingOrder - 1; // behind
+
 
         // Apply initial settings
         shadowRenderer.color = new Color(0f, 0f, 0f, shadowAlpha);
@@ -41,7 +40,8 @@ public class Shadowable : MonoBehaviour
     void LateUpdate()
     {
         if (shadowRenderer == null || parentRenderer == null) return;
-
+        shadowRenderer.sortingLayerID = parentRenderer.sortingLayerID;
+        shadowRenderer.sortingOrder = parentRenderer.sortingOrder - 1; // behind
         // Copy sprite & flip state
         shadowRenderer.sprite = parentRenderer.sprite;
         shadowRenderer.flipX = parentRenderer.flipX;

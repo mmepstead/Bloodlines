@@ -4,7 +4,7 @@ public static class PlayerData
 {
     public static int baseMaxHealth = 6;
     public static int currentHealth = baseMaxHealth;
-    public static int medalCount = 3;
+    public static int medalCount = 0;
     public static int medallionsCollected = 0;
     public static int medalExtraHealth = 0;
     public static int maxHealth = baseMaxHealth + medalExtraHealth;

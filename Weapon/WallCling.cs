@@ -31,7 +31,7 @@ public class WallCling : MonoBehaviour {
                 // Set player
                 player.GetComponent<Movement>().hangingOn = collision.gameObject;
                 player.GetComponent<Movement>().hangingPoint = collisionPoint;
-                startHangingPosition = new Vector2(collisionPoint.x + (player.transform.localScale.x > 0 ? -0.7f : 0.7f), collisionPoint.y);
+                startHangingPosition = new Vector2(collisionPoint.x + (player.transform.localScale.x > 0 ? -1f : 1f), collisionPoint.y);
                 player.GetComponent<Movement>().hangingOn = collision.gameObject;
             }
             else 

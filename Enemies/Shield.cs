@@ -80,6 +80,7 @@ public class Shield : MonoBehaviour {
     public void impact(int damage, Vector3 pos)
     {
         // If shield is broken hit enemy itself
+        baseShieldCore.gameObject.GetComponent<ComboPunchScale>().TriggerPunch();
         if(health == 0) 
         {
             Enemy enemy = gameObject.GetComponent<Enemy>();
@@ -90,11 +91,8 @@ public class Shield : MonoBehaviour {
             Vector3 impactPos = relativePlayerPosition() ? new Vector3(pos.x-impactShift.x, pos.y + impactShift.y, pos.z) : new Vector3(pos.x+impactShift.x, pos.y + impactShift.y, pos.z);
             GameObject shieldImpact = Instantiate(getImpactPrefab(), impactPos, Quaternion.identity, gameObject.transform);
             shieldImpact.transform.localScale = new Vector3(relativePlayerPosition() ? -1*Math.Abs(shieldScale) : shieldScale,shieldScale,1);
-            var impactParticles = shieldImpact.transform.Find("Impact Particles").GetComponent<ParticleSystem>();
-            var impactShape = impactParticles.shape;
-            var vel = impactParticles.velocityOverLifetime;
-            impactShape.rotation = new Vector3(0,relativePlayerPosition() ? 0 : 270, 0);
-            vel.speedModifier = relativePlayerPosition() ? 1 : -1;
+            var impactParticles = shieldImpact.transform.Find("Parry Sparks");
+            impactParticles.localScale = new Vector3(relativePlayerPosition() ? impactParticles.localScale.x : -1*Math.Abs(impactParticles.localScale.x),impactParticles.localScale.y,impactParticles.localScale.z);
 
             health -= damage;
         }
@@ -103,6 +101,7 @@ public class Shield : MonoBehaviour {
             // Break Shield
             health = 0;
             fullRegenCountdown = fullRegen;
+            PlayerData.currentHealth += PlayerData.currentHealth < PlayerData.maxHealth ? 1 : 0;
             stagger();
             StartCoroutine(breakShield());
         }
@@ -114,11 +113,25 @@ public class Shield : MonoBehaviour {
         return GameObject.Find("Player").transform.position.x < transform.position.x;
     }
 
+        /// </summary>
+    public static bool HasParameter(Animator animator, string paramName)
+    {
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == paramName)
+                return true;
+        }
+        return false;
+    }
+
     public void stagger()
     {
         // Break combo
         gameObject.GetComponent<EnemyCombat>().InterruptCombo();
-        gameObject.GetComponent<Animator>().SetTrigger(staggerTrigger);
+        if(HasParameter(gameObject.GetComponent<Animator>(), "Stagger"))
+        {
+            gameObject.GetComponent<Animator>().SetTrigger(staggerTrigger);
+        }
 
     }
 
@@ -207,7 +220,7 @@ public class Shield : MonoBehaviour {
 
         GameObject shieldBreaking = Instantiate(shieldBreakPrefab, transform.position + new Vector3(0.18f,-0.05f,-1), Quaternion.identity);
         shieldBreaking.transform.localScale = new Vector3((relativePlayerPosition() ? -1 : 1)*Mathf.Abs(shieldBreaking.transform.localScale.x), (relativePlayerPosition() ? -1 : 1)*Mathf.Abs(shieldBreaking.transform.localScale.y), shieldBreaking.transform.localScale.z);
-        while(Time.timeScale > 0.5f)
+        while(Time.timeScale > 0.9f)
         {
             Time.timeScale -= 0.1f;
             yield return null;
